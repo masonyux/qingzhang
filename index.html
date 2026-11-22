@@ -133,6 +133,31 @@
                 </div>
             </section>
 
+            <!-- 现金流拆分：固定月供 vs 到期本金 -->
+            <section class="grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-2xl p-3.5 card-shadow border border-slate-100">
+                    <p class="text-[11px] text-slate-400">常规月供支出（固定开销）</p>
+                    <p id="dash-fixed-monthly" class="text-xl font-bold text-slate-900 tabular-nums mt-1">¥ 0.00</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">分期月供 + 先息后本利息</p>
+                </div>
+                <div class="bg-white rounded-2xl p-3.5 card-shadow border border-slate-100">
+                    <p class="text-[11px] text-slate-400">未来 90 天到期本金</p>
+                    <p id="dash-principal-90d" class="text-xl font-bold text-rose-600 tabular-nums mt-1">¥ 0.00</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">先息后本需大额周转</p>
+                </div>
+            </section>
+
+            <!-- 本金到期分布柱状图 -->
+            <section class="bg-white rounded-2xl p-4 card-shadow border border-slate-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-bold text-slate-800">本金到期分布（未来 12 个月）</h2>
+                    <span class="text-[11px] text-slate-400">先息后本到期本金</span>
+                </div>
+                <div id="dash-principal-chart" class="flex items-end gap-1 h-28">
+                    <!-- 动态渲染柱状图 -->
+                </div>
+            </section>
+
             <!-- 快捷功能入口 -->
             <section class="grid grid-cols-2 gap-3">
                 <button onclick="openCardModal()" class="bg-white p-3.5 rounded-2xl card-shadow border border-slate-100 flex items-center gap-3 active:scale-[0.98] transition text-left">
@@ -196,17 +221,17 @@
             </div>
         </main>
 
-        <!-- ==================== 页面 3：信用贷与分期 (轻帆负债进度) ==================== -->
+        <!-- ==================== 页面 3：分期贷（等额本息 / 等额本金） ==================== -->
         <main id="view-loans" class="p-4 space-y-4 hidden">
             <!-- 顶部汇总与添加按钮 -->
             <div class="bg-white rounded-2xl p-4 card-shadow border border-slate-100">
                 <div class="flex items-center justify-between mb-3">
                     <p class="text-xs font-medium text-slate-500 flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
-                        信用贷 / 分期总览
+                        分期贷总览（等额本息 / 等额本金）
                     </p>
-                    <button onclick="openLoanModal()" class="bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-800 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-plus"></i> 新增贷款
+                    <button onclick="openLoanModal(null, 'equal')" class="bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-800 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-plus"></i> 新增分期
                     </button>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -243,9 +268,52 @@
                 </div>
             </div>
 
-            <!-- 信用贷卡片列表 -->
+            <!-- 分期贷卡片列表 -->
             <div id="loans-list" class="space-y-3.5">
-                <!-- 动态渲染信用贷卡片 -->
+                <!-- 动态渲染分期贷卡片 -->
+            </div>
+        </main>
+
+        <!-- ==================== 页面 3.5：先息后本（到期还本） ==================== -->
+        <main id="view-interest" class="p-4 space-y-4 hidden">
+            <!-- 顶部汇总与添加按钮 -->
+            <div class="bg-white rounded-2xl p-4 card-shadow border border-slate-100">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs font-medium text-slate-500 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                        先息后本总览
+                    </p>
+                    <button onclick="openLoanModal(null, 'interestFirst')" class="bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-800 active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-plus"></i> 新增先息后本
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <p class="text-[11px] text-slate-400">每月付息合计</p>
+                        <p id="interest-monthly-total" class="text-xl font-bold text-slate-900 tabular-nums mt-0.5">¥ 0.00</p>
+                    </div>
+                    <div class="border-l border-slate-100 pl-3">
+                        <p class="text-[11px] text-slate-400">未来 90 天到期本金</p>
+                        <p id="interest-principal-90d" class="text-xl font-bold text-rose-600 tabular-nums mt-0.5">¥ 0.00</p>
+                    </div>
+                </div>
+                <div class="mt-2.5 pt-2.5 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-400">
+                    <div class="flex items-center justify-between">
+                        <span>待还本金合计 <span id="interest-principal-left" class="font-semibold text-slate-700 tabular-nums">¥ 0.00</span></span>
+                        <span id="interest-count">共 0 笔</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 提示说明 -->
+            <div class="bg-amber-50/70 border border-amber-100 rounded-xl px-3.5 py-2.5 text-xs text-amber-800 flex items-start gap-2.5">
+                <i class="fa-solid fa-circle-info text-amber-500 mt-0.5"></i>
+                <p class="leading-relaxed">先息后本：每月只还利息，到期一次性归还本金。卡片会显示<strong>到期倒计时</strong>并单独预警，避免与月供混算导致现金流误判。</p>
+            </div>
+
+            <!-- 先息后本卡片列表 -->
+            <div id="interest-list" class="space-y-3.5">
+                <!-- 动态渲染先息后本卡片 -->
             </div>
         </main>
 
@@ -307,7 +375,7 @@
 
         <!-- ==================== 底部原生 Tab 导航栏 ==================== -->
         <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-200/80 safe-bottom z-30 px-2 pt-2">
-            <div class="grid grid-cols-4 gap-1">
+            <div class="grid grid-cols-5 gap-1">
                 <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-900 font-semibold transition">
                     <i class="fa-solid fa-chart-pie text-lg mb-1"></i>
                     <span class="text-[11px]">总览</span>
@@ -318,11 +386,15 @@
                 </button>
                 <button onclick="switchTab('loans')" id="tab-loans" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
                     <i class="fa-solid fa-layer-group text-lg mb-1"></i>
-                    <span class="text-[11px]">信用贷</span>
+                    <span class="text-[11px]">分期贷</span>
+                </button>
+                <button onclick="switchTab('interest')" id="tab-interest" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-clock text-lg mb-1"></i>
+                    <span class="text-[11px]">先息后本</span>
                 </button>
                 <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
                     <i class="fa-solid fa-clock-rotate-left text-lg mb-1"></i>
-                    <span class="text-[11px]">流水/备份</span>
+                    <span class="text-[11px]">流水</span>
                 </button>
             </div>
         </nav>
@@ -493,17 +565,17 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">总期数 (月) *</label>
-                        <input type="number" id="loan-total-periods" min="1" max="360" required placeholder="如：24" oninput="autoCalcLoanPayment(true)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                        <input type="number" id="loan-total-periods" min="1" max="360" required placeholder="如：24" oninput="autoCalcLoanPayment(true);updateInterestSummary()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">当前已还期数 *</label>
-                        <input type="number" id="loan-paid-periods" min="0" max="360" required placeholder="如：6" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                        <input type="number" id="loan-paid-periods" min="0" max="360" required placeholder="如：6" oninput="updatePaidThisMonthLabel()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">贷款总金额 / 本金 (元)</label>
-                    <input type="number" step="0.01" min="0" id="loan-total-amount" oninput="autoCalcLoanPayment(true)" placeholder="如：50000，留空则按月供 × 总期数估算" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                    <input type="number" step="0.01" min="0" id="loan-total-amount" oninput="autoCalcLoanPayment(true);updateInterestSummary()" placeholder="如：50000，留空则按月供 × 总期数估算" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
                     <p class="text-[11px] text-slate-400 mt-1">填「本金 + 年利率」会自动生成每期还款计划（本金/利息/月供明细）；只填月供也可按「月供 × 总期数」估算。</p>
                 </div>
 
@@ -532,30 +604,69 @@
                         <label id="loan-monthly-label" class="block text-xs font-medium text-slate-600">每月固定还款额 (元) *</label>
                         <button type="button" onclick="autoCalcLoanPayment(true)" class="text-[11px] text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded-md">按本金+利率自动算</button>
                     </div>
-                    <input type="number" step="0.01" min="0.01" id="loan-monthly-amount" required placeholder="如：2500.00（填本金+利率可自动算）" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                    <input type="number" step="0.01" min="0.01" id="loan-monthly-amount" required placeholder="如：2500.00（填本金+利率可自动算）" oninput="updateInterestSummary()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
                     <p id="loan-calc-hint" class="hidden text-[11px] text-emerald-600 mt-1">已按本金与年利率自动算出月供，可手动微调。</p>
+                    <!-- 先息后本：最后一期应还总额预览 -->
+                    <div id="loan-interest-summary" class="hidden mt-1.5 rounded-xl bg-amber-50 border border-amber-200 p-3 space-y-1">
+                        <p class="text-[11px] text-slate-600" id="loan-interest-summary-line1"></p>
+                        <p class="text-xs font-bold text-slate-900" id="loan-interest-summary-line2"></p>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">首次扣款年月</label>
-                        <input type="month" id="loan-start-month" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                <!-- 常规分期：首次扣款年月 + 自动推进 -->
+                <div id="loan-normal-schedule-block">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">首次扣款年月</label>
+                            <input type="month" id="loan-start-month" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                        </div>
+                        <div class="flex items-end">
+                            <label class="flex items-center gap-2 cursor-pointer pb-2.5">
+                                <input type="checkbox" id="loan-auto-advance" onchange="toggleLoanAutoAdvance()" class="w-4 h-4 rounded text-slate-900 focus:ring-0">
+                                <span class="text-xs font-medium text-slate-600">按月自动推进期数</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="flex items-end">
-                        <label class="flex items-center gap-2 cursor-pointer pb-2.5">
-                            <input type="checkbox" id="loan-auto-advance" onchange="toggleLoanAutoAdvance()" class="w-4 h-4 rounded text-slate-900 focus:ring-0">
-                            <span class="text-xs font-medium text-slate-600">按月自动推进期数</span>
-                        </label>
+                    <p id="loan-auto-hint" class="hidden text-[11px] text-indigo-600">已开启自动推进：只需填首次扣款年月，应用按当前日期自动计算已还期数并滚动，无需每月手动更新；每月到期点「核销本期」即可记账。</p>
+                </div>
+
+                <!-- 先息后本：起息日 + 到期还本日 -->
+                <div id="loan-interest-schedule-block" class="hidden space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">起息日 *</label>
+                            <input type="date" id="loan-start-date" oninput="autoCalcMaturityDate()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">到期还本日 *</label>
+                            <input type="date" id="loan-maturity-date" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                        </div>
+                    </div>
+                    <p id="loan-maturity-hint" class="hidden text-[11px] text-indigo-600">预计本金到期日：<strong id="loan-maturity-preview"></strong>（已按起息日 + 总期数自动推算，可按实际天数手动微调）</p>
+                </div>
+
+                <!-- 先息后本：末期利息单独设置 + 到期处置 -->
+                <div id="loan-interest-extra-block" class="hidden space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">末期利息单独设置（选填）</label>
+                        <input type="number" step="0.01" min="0" id="loan-last-interest" oninput="updateInterestSummary()" placeholder="留空则与每月利息相同（按实际天数计息时可微调）" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm tabular-nums focus:outline-none focus:border-slate-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">到期处置计划</label>
+                        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl">
+                            <button type="button" id="maturity-payoff-btn" onclick="setMaturityPlan('payoff')" class="py-2 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition">自有资金结清</button>
+                            <button type="button" id="maturity-rollover-btn" onclick="setMaturityPlan('rollover')" class="py-2 text-xs font-semibold rounded-lg text-slate-500 transition">预计续贷 / 转贷</button>
+                        </div>
                     </div>
                 </div>
-                <p id="loan-auto-hint" class="hidden text-[11px] text-indigo-600">已开启自动推进：只需填首次扣款年月，应用按当前日期自动计算已还期数并滚动，无需每月手动更新；每月到期点「核销本期」即可记账。</p>
+
                 <p id="loan-interest-first-hint" class="hidden text-[11px] text-amber-600">先息后本：每月只还利息，到期一次性归还本金（本金填在「贷款总金额」）。</p>
                 <p class="text-[11px] text-slate-400 mt-1">等额本息：每月固定；等额本金：月供逐月递减（首月最高）；先息后本：每月只还息、到期还本。</p>
 
                 <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200/70">
                     <div>
-                        <div class="text-xs font-semibold text-slate-800">本月是否已完成扣款？</div>
-                        <div class="text-[11px] text-slate-400">勾选后本月时间轴将标记为已还</div>
+                        <div id="loan-paid-title" class="text-xs font-semibold text-slate-800">本月是否已完成扣款？</div>
+                        <div id="loan-paid-sub" class="text-[11px] text-slate-400">勾选后本月时间轴将标记为已还</div>
                     </div>
                     <input type="checkbox" id="loan-paid-this-month" class="w-5 h-5 rounded text-slate-900 focus:ring-0">
                 </div>
@@ -969,7 +1080,11 @@
                     repayType: 'equal',
                     annualRate: null,
                     startMonth: '',
-                    autoAdvance: false
+                    autoAdvance: false,
+                    startDate: '',
+                    maturityDate: '',
+                    lastInterest: null,
+                    maturityPlan: 'payoff'
                 },
                 {
                     id: 'loan_demo_2',
@@ -985,7 +1100,31 @@
                     repayType: 'equal',
                     annualRate: null,
                     startMonth: '',
-                    autoAdvance: false
+                    autoAdvance: false,
+                    startDate: '',
+                    maturityDate: '',
+                    lastInterest: null,
+                    maturityPlan: 'payoff'
+                },
+                {
+                    id: 'loan_demo_3',
+                    name: '徽商银行先息后本',
+                    totalPeriods: 6,
+                    paidPeriods: 3,
+                    monthlyAmount: 209.25,
+                    principal: 45000.00,
+                    dueDay: 25,
+                    color: 'huishang',
+                    icon: 'logo_huishang',
+                    lastPaidMonth: '',
+                    repayType: 'interestFirst',
+                    annualRate: null,
+                    startMonth: '',
+                    autoAdvance: false,
+                    startDate: '2026-08-25',
+                    maturityDate: '2027-01-25',
+                    lastInterest: null,
+                    maturityPlan: 'payoff'
                 }
             ],
             history: [
@@ -1026,6 +1165,10 @@
                     if (l.annualRate == null) l.annualRate = null;
                     if (!l.startMonth) l.startMonth = '';
                     if (l.autoAdvance == null) l.autoAdvance = false;
+                    if (!l.startDate) l.startDate = '';
+                    if (!l.maturityDate) l.maturityDate = '';
+                    if (l.lastInterest == null) l.lastInterest = null;
+                    if (!l.maturityPlan) l.maturityPlan = 'payoff';
                 });
             } catch (e) {
                 console.error('读取存储失败', e);
@@ -1053,6 +1196,35 @@
             return Math.round((Number(x) || 0) * 100) / 100;
         }
 
+        // ==================== 日期工具（先息后本到期倒计时用） ====================
+        function parseDateStr(s) {
+            if (!s) return null;
+            const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(s));
+            if (!m) return null;
+            const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            return isNaN(d.getTime()) ? null : d;
+        }
+        function addMonthsStr(dateStr, n) {
+            const d = parseDateStr(dateStr);
+            if (!d) return '';
+            const day = d.getDate();
+            const t = new Date(d.getFullYear(), d.getMonth() + n, 1);
+            const lastDay = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+            const dd = Math.min(day, lastDay);
+            return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+        }
+        function daysUntilDate(dateStr) {
+            const d = parseDateStr(dateStr);
+            if (!d) return null;
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            return Math.round((d - today) / 86400000);
+        }
+        function formatDateCN(dateStr) {
+            const d = parseDateStr(dateStr);
+            if (!d) return '';
+            return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+
         // 贷款总金额（本金）：优先取用户填写的本金，留空时按月供 × 总期数估算
         function getLoanPrincipal(l) {
             const p = Number(l && l.principal);
@@ -1072,6 +1244,20 @@
             if (rt === 'interestFirst') return '先息后本';
             if (rt === 'equalPrincipal') return '等额本金';
             return '等额本息';
+        }
+
+        // 末期利息（可单独设置，默认与每月利息一致）
+        function getLoanLastInterest(l) {
+            if (l && l.lastInterest != null && Number(l.lastInterest) > 0) return Number(l.lastInterest);
+            return Number(l && l.monthlyAmount) || 0;
+        }
+        // 到期还本日（优先取用户设置，否则按起息日 + 总期数 - 1 个月推算）
+        function getLoanMaturityDate(l) {
+            if (l && l.maturityDate) return l.maturityDate;
+            const sd = l && l.startDate;
+            const n = Number(l && l.totalPeriods) || 0;
+            if (sd && n > 0) return addMonthsStr(sd, n - 1);
+            return '';
         }
 
         // 月利率：优先用年利率；未填年利率时按首期月供反推
@@ -1109,7 +1295,8 @@
             for (let k = 1; k <= n; k++) {
                 let payment, interestPart, principalPart;
                 if (rt === 'interestFirst') {
-                    interestPart = P * i;
+                    const monthlyInterest = Number(l && l.monthlyAmount) || 0;
+                    interestPart = (k === n) ? getLoanLastInterest(l) : monthlyInterest;
                     principalPart = (k === n) ? P : 0;
                     payment = interestPart + principalPart;
                     balance = (k === n) ? 0 : P;
@@ -1255,6 +1442,21 @@
                 if (hint) hint.classList.add('hidden');
                 if (amountInput) amountInput.placeholder = '如：2500.00';
             }
+            // 切换先息后本专属区块（起息日/到期日、末期利息、到期处置、最后一期预览）
+            const normalBlock = document.getElementById('loan-normal-schedule-block');
+            const interestBlock = document.getElementById('loan-interest-schedule-block');
+            const extraBlock = document.getElementById('loan-interest-extra-block');
+            const summaryBox = document.getElementById('loan-interest-summary');
+            if (normalBlock) normalBlock.classList.toggle('hidden', type === 'interestFirst');
+            if (interestBlock) interestBlock.classList.toggle('hidden', type !== 'interestFirst');
+            if (extraBlock) extraBlock.classList.toggle('hidden', type !== 'interestFirst');
+            if (type === 'interestFirst') {
+                autoCalcMaturityDate();
+                updateInterestSummary();
+            } else if (summaryBox) {
+                summaryBox.classList.add('hidden');
+            }
+            updatePaidThisMonthLabel();
             autoCalcLoanPayment(true);
         }
 
@@ -1283,7 +1485,87 @@
             if (!(payment > 0)) return false;
             if (amountInput) amountInput.value = round2(payment).toFixed(2);
             if (hint) hint.classList.remove('hidden');
+            updateInterestSummary();
             return true;
+        }
+
+        // 先息后本：由起息日 + 总期数自动推算到期还本日（可手动微调）
+        function autoCalcMaturityDate() {
+            const sd = document.getElementById('loan-start-date').value;
+            const periods = parseInt(document.getElementById('loan-total-periods').value, 10) || 0;
+            const md = document.getElementById('loan-maturity-date');
+            const hint = document.getElementById('loan-maturity-hint');
+            const preview = document.getElementById('loan-maturity-preview');
+            if (sd && periods > 0) {
+                const cal = addMonthsStr(sd, periods - 1);
+                if (md) md.value = cal;
+                if (preview) preview.textContent = formatDateCN(cal);
+                if (hint) hint.classList.remove('hidden');
+            } else if (hint) {
+                hint.classList.add('hidden');
+            }
+            updateInterestSummary();
+        }
+
+        // 仅刷新到期日提示（不覆盖用户手动微调后的到期日）
+        function refreshMaturityHint() {
+            const hint = document.getElementById('loan-maturity-hint');
+            const preview = document.getElementById('loan-maturity-preview');
+            const sd = document.getElementById('loan-start-date').value;
+            const md = document.getElementById('loan-maturity-date').value;
+            if (sd && md) {
+                if (preview) preview.textContent = formatDateCN(md);
+                if (hint) hint.classList.remove('hidden');
+            } else if (hint) {
+                hint.classList.add('hidden');
+            }
+        }
+
+        // 先息后本：最后一期应还总额预览卡片
+        function updateInterestSummary() {
+            const box = document.getElementById('loan-interest-summary');
+            if (!box) return;
+            if (currentLoanRepayType !== 'interestFirst') { box.classList.add('hidden'); return; }
+            const principal = parseFloat(document.getElementById('loan-total-amount').value) || 0;
+            const monthly = parseFloat(document.getElementById('loan-monthly-amount').value) || 0;
+            const periods = parseInt(document.getElementById('loan-total-periods').value, 10) || 0;
+            const lastRaw = document.getElementById('loan-last-interest').value.trim();
+            const lastInterest = (lastRaw !== '' && !isNaN(parseFloat(lastRaw))) ? parseFloat(lastRaw) : monthly;
+            const l1 = document.getElementById('loan-interest-summary-line1');
+            const l2 = document.getElementById('loan-interest-summary-line2');
+            if (l1) l1.textContent = `第 1 ~ ${Math.max(0, periods - 1)} 期每月应还：${formatMoney(monthly)}（纯息）`;
+            if (l2) l2.textContent = `第 ${periods} 期（到期日）应还：${formatMoney(principal + lastInterest)}（本金 ${formatMoney(principal)} + 末期息 ${formatMoney(lastInterest)}）`;
+            box.classList.remove('hidden');
+            updatePaidThisMonthLabel();
+        }
+
+        // 到期处置计划切换
+        let currentMaturityPlan = 'payoff';
+        function setMaturityPlan(plan) {
+            currentMaturityPlan = plan;
+            const a = document.getElementById('maturity-payoff-btn');
+            const b = document.getElementById('maturity-rollover-btn');
+            const on = 'py-2 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-xs transition';
+            const off = 'py-2 text-xs font-semibold rounded-lg text-slate-500 transition';
+            if (a) a.className = plan === 'payoff' ? on : off;
+            if (b) b.className = plan === 'rollover' ? on : off;
+        }
+
+        // 最后一期勾选框文案：进入最后一期时提示含本金
+        function updatePaidThisMonthLabel() {
+            const title = document.getElementById('loan-paid-title');
+            const sub = document.getElementById('loan-paid-sub');
+            if (!title) return;
+            const total = parseInt(document.getElementById('loan-total-periods').value, 10) || 0;
+            const paid = parseInt(document.getElementById('loan-paid-periods').value, 10) || 0;
+            const principal = parseFloat(document.getElementById('loan-total-amount').value) || 0;
+            if (currentLoanRepayType === 'interestFirst' && total > 0 && paid === total - 1) {
+                title.textContent = `本期（含本金 ${formatMoney(principal)}）是否已结清？`;
+                if (sub) sub.textContent = '最后一期：需同时归还本金，请确认后再勾选';
+            } else {
+                title.textContent = '本月是否已完成扣款？';
+                if (sub) sub.textContent = '勾选后本月时间轴将标记为已还';
+            }
         }
 
         // 自动推进开关：开启后锁定「已还期数」，由首次扣款年月推算
@@ -1380,17 +1662,47 @@
                 const due = getDaysUntilDue(c.dueDay);
                 const overdue = todayDay > c.dueDay;
                 if (overdue || due.days <= remindDays) {
-                    items.push({ name: c.bank, amount: debt, daysLeft: due.days, dateStr: due.dateStr, overdue, kind: '信用卡' });
+                    items.push({ sev: 'light', name: c.bank, amount: debt, daysLeft: due.days, overdue, kind: '信用卡', text: '' });
                 }
             });
 
             appData.loans.forEach(l => {
                 const rem = Math.max(0, (Number(l.totalPeriods) || 0) - getLoanPaidPeriods(l, ym));
-                if (rem <= 0 || l.lastPaidMonth === ym) return;
-                const due = getDaysUntilDue(l.dueDay);
-                const overdue = todayDay > l.dueDay;
-                if (overdue || due.days <= remindDays) {
-                    items.push({ name: l.name, amount: getLoanNextPayment(l, ym), daysLeft: due.days, dateStr: due.dateStr, overdue, kind: '信用贷' });
+                if (rem <= 0) return;
+                const isIF = isInterestFirst(l);
+
+                if (isIF) {
+                    // 1) 日常付息提醒（轻量）
+                    if (l.lastPaidMonth !== ym) {
+                        const due = getDaysUntilDue(l.dueDay);
+                        const overdue = todayDay > l.dueDay;
+                        if (overdue || due.days <= remindDays) {
+                            items.push({ sev: 'light', name: l.name, amount: Number(l.monthlyAmount) || 0, daysLeft: due.days, overdue, kind: '付息', text: '' });
+                        }
+                    }
+                    // 2) 大额还本倒计时提醒（强提醒：60/30/7/1 天）
+                    const md = getLoanMaturityDate(l);
+                    const d = md ? daysUntilDate(md) : null;
+                    if (d != null && d <= 60) {
+                        const p = getLoanPrincipal(l);
+                        let text;
+                        if (d < 0) text = `${l.name} ¥${formatMoney(p)} 本金已逾期 ${-d} 天，请立即安排还款或续贷`;
+                        else if (d === 0) text = `${l.name} ¥${formatMoney(p)} 本金今天到期，请立即归还或办理续贷`;
+                        else if (d <= 1) text = `${l.name} ¥${formatMoney(p)} 本金将于 1 天后到期，请立即准备资金`;
+                        else if (d <= 7) text = `${l.name} ¥${formatMoney(p)} 本金将于 ${d} 天后到期，请立即准备资金`;
+                        else if (d <= 30) text = `${l.name} ¥${formatMoney(p)} 本金将于 ${d} 天后到期，请提前准备资金或联系客户经理办理续贷`;
+                        else text = `${l.name} ¥${formatMoney(p)} 本金将于 ${d} 天后到期，请提前安排周转`;
+                        items.push({ sev: 'strong', name: l.name, amount: p, daysLeft: d, overdue: d < 0, kind: '还本', text });
+                    }
+                } else {
+                    // 常规分期：月供提醒
+                    if (l.lastPaidMonth !== ym) {
+                        const due = getDaysUntilDue(l.dueDay);
+                        const overdue = todayDay > l.dueDay;
+                        if (overdue || due.days <= remindDays) {
+                            items.push({ sev: 'light', name: l.name, amount: getLoanNextPayment(l, ym), daysLeft: due.days, overdue, kind: '月供', text: '' });
+                        }
+                    }
                 }
             });
 
@@ -1400,26 +1712,44 @@
                 return;
             }
 
-            items.sort((a, b) => (a.overdue === b.overdue ? a.daysLeft - b.daysLeft : (a.overdue ? -1 : 1)));
+            // 强提醒置顶，其次逾期，再按天数升序
+            items.sort((a, b) => {
+                const rank = (x) => (x.sev === 'strong' ? 0 : 1);
+                if (rank(a) !== rank(b)) return rank(a) - rank(b);
+                if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+                return a.daysLeft - b.daysLeft;
+            });
+            const hasStrong = items.some(i => i.sev === 'strong');
             const hasOverdue = items.some(i => i.overdue);
-            banner.className = 'rounded-2xl p-4 border card-shadow ' + (hasOverdue ? 'bg-rose-50 border-rose-200' : 'bg-amber-50 border-amber-200');
+            const urgent = hasStrong || hasOverdue;
+            banner.className = 'rounded-2xl p-4 border card-shadow ' + (urgent ? 'bg-rose-50 border-rose-200' : 'bg-amber-50 border-amber-200');
             banner.innerHTML = `
                 <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm font-bold ${hasOverdue ? 'text-rose-700' : 'text-amber-700'}">
-                        <i class="fa-solid ${hasOverdue ? 'fa-triangle-exclamation' : 'fa-bell'} mr-1"></i>还款提醒（${items.length} 笔）
+                    <p class="text-sm font-bold ${urgent ? 'text-rose-700' : 'text-amber-700'}">
+                        <i class="fa-solid ${urgent ? 'fa-triangle-exclamation' : 'fa-bell'} mr-1"></i>还款提醒（${items.length} 笔${hasStrong ? '，含大额还本' : ''}）
                     </p>
-                    <button onclick="switchTab('cards')" class="text-xs text-slate-500 font-medium">去处理 →</button>
+                    <button onclick="switchTab('${hasStrong ? 'interest' : 'cards'}')" class="text-xs text-slate-500 font-medium">去处理 →</button>
                 </div>
                 <div class="space-y-1.5">
-                    ${items.map(i => `
-                        <div class="flex items-center justify-between gap-2 text-xs">
-                            <span class="text-slate-700 truncate">${i.kind} · ${i.name}</span>
-                            <span class="flex items-center gap-2 shrink-0">
-                                <span class="text-slate-900 font-semibold tabular-nums">${formatMoney(i.amount)}</span>
-                                <span class="${i.overdue ? 'text-rose-600 font-semibold' : (i.daysLeft === 0 ? 'text-rose-600 font-semibold' : 'text-amber-600 font-medium')}">${i.overdue ? '已逾期' : (i.daysLeft === 0 ? '今天到期' : `剩${i.daysLeft}天`)}</span>
-                            </span>
-                        </div>
-                    `).join('')}
+                    ${items.map(i => {
+                        if (i.sev === 'strong') {
+                            const isUrgent = i.daysLeft <= 7 && i.daysLeft >= 0;
+                            return `
+                                <div class="flex items-center justify-between gap-2 text-xs ${isUrgent ? 'bg-rose-100 rounded-lg px-2 py-1.5' : 'bg-white/60 rounded-lg px-2 py-1.5'}">
+                                    <span class="text-rose-700 font-medium truncate">${i.text}</span>
+                                </div>
+                            `;
+                        }
+                        return `
+                            <div class="flex items-center justify-between gap-2 text-xs">
+                                <span class="text-slate-700 truncate">${i.kind} · ${i.name}</span>
+                                <span class="flex items-center gap-2 shrink-0">
+                                    <span class="text-slate-900 font-semibold tabular-nums">${formatMoney(i.amount)}</span>
+                                    <span class="${i.overdue ? 'text-rose-600 font-semibold' : (i.daysLeft === 0 ? 'text-rose-600 font-semibold' : 'text-amber-600 font-medium')}">${i.overdue ? '已逾期' : (i.daysLeft === 0 ? '今天到期' : `剩${i.daysLeft}天`)}</span>
+                                </span>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
             banner.classList.remove('hidden');
@@ -1471,11 +1801,12 @@
         // ==================== 导航切换 ====================
         function switchTab(tab) {
             currentTab = tab;
-            const views = ['dashboard', 'cards', 'loans', 'history'];
+            const views = ['dashboard', 'cards', 'loans', 'interest', 'history'];
             const titles = {
                 dashboard: '总览看板',
                 cards: '信用卡账单',
-                loans: '信用贷与分期',
+                loans: '分期贷',
+                interest: '先息后本',
                 history: '还款流水与备份'
             };
 
@@ -1506,6 +1837,7 @@
             renderDashboard(ym);
             renderCardsList(ym);
             renderLoansList(ym);
+            renderInterestList(ym);
             renderHistoryList();
             renderReminderBanner();
         }
@@ -1523,13 +1855,32 @@
             let loanMonthDue = 0;
             let loanTotalRemainingDebt = 0;
             let loanTotalPrincipal = 0;
+            let fixedMonthly = 0;        // 常规月供支出（分期月供 + 先息后本利息）
+            let principal90d = 0;        // 未来90天到期的先息后本本金
+            const principalByMonth = new Array(12).fill(0);
 
+            const todayForChart = new Date();
             appData.loans.forEach(l => {
                 const remPeriods = Math.max(0, (Number(l.totalPeriods) || 0) - getLoanPaidPeriods(l, ym));
                 loanTotalRemainingDebt += getLoanRemainingDebt(l, ym);
                 loanTotalPrincipal += getLoanPrincipal(l);
-                if (remPeriods > 0 && l.lastPaidMonth !== ym) {
-                    loanMonthDue += getLoanNextPayment(l, ym);
+                const isIF = isInterestFirst(l);
+                if (remPeriods > 0) {
+                    fixedMonthly += isIF ? (Number(l.monthlyAmount) || 0) : getLoanNextPayment(l, ym);
+                    if (l.lastPaidMonth !== ym) {
+                        loanMonthDue += isIF ? (Number(l.monthlyAmount) || 0) : getLoanNextPayment(l, ym);
+                    }
+                }
+                // 先息后本：到期本金池 + 按月分布
+                if (isIF && remPeriods > 0) {
+                    const md = getLoanMaturityDate(l);
+                    const d = md ? daysUntilDate(md) : null;
+                    if (d != null && d >= 0 && d <= 90) principal90d += getLoanPrincipal(l);
+                    if (md && d != null && d >= 0) {
+                        const dm = parseDateStr(md);
+                        const idx = (dm.getFullYear() - todayForChart.getFullYear()) * 12 + (dm.getMonth() - todayForChart.getMonth());
+                        if (idx >= 0 && idx < 12) principalByMonth[idx] += getLoanPrincipal(l);
+                    }
                 }
             });
 
@@ -1548,6 +1899,11 @@
             document.getElementById('dash-month-paid').textContent = formatMoney(monthPaidTotal);
             document.getElementById('dash-credit-limit').textContent = formatMoney(creditLimitTotal);
             document.getElementById('dash-card-available').textContent = cardsWithBalance.length > 0 ? formatMoney(cardAvailable) : '未填写';
+            const fmEl = document.getElementById('dash-fixed-monthly');
+            if (fmEl) fmEl.textContent = formatMoney(fixedMonthly);
+            const p90El = document.getElementById('dash-principal-90d');
+            if (p90El) p90El.textContent = formatMoney(principal90d);
+            renderPrincipalChart(principalByMonth);
 
             // 本月进度条
             const monthTotalTarget = monthRemainingDue + monthPaidTotal;
@@ -1659,6 +2015,34 @@
             }).join('');
         }
 
+        // 本金到期分布柱状图（未来 12 个月）
+        function renderPrincipalChart(principalByMonth) {
+            const box = document.getElementById('dash-principal-chart');
+            if (!box) return;
+            const max = Math.max(0, ...principalByMonth);
+            const hasData = principalByMonth.some(v => v > 0);
+            if (!hasData) {
+                box.innerHTML = `<p class="text-xs text-slate-400 self-center">暂无先息后本到期本金</p>`;
+                return;
+            }
+            const today = new Date();
+            const barMax = 60;
+            box.innerHTML = principalByMonth.map((v, i) => {
+                const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+                const label = `${d.getMonth() + 1}月`;
+                const h = max > 0 ? Math.max(3, Math.round((v / max) * barMax)) : 0;
+                const isNow = i === 0;
+                const valText = v > 0 ? (v >= 10000 ? (v / 10000).toFixed(1) + '万' : Math.round(v)) : '';
+                return `
+                    <div class="flex-1 flex flex-col items-center justify-end gap-0.5 h-full min-w-0">
+                        <span class="text-[9px] text-slate-500 tabular-nums leading-none">${valText}</span>
+                        <div class="w-full max-w-[20px] rounded-t ${isNow ? 'bg-rose-500' : (v > 0 ? 'bg-indigo-500' : 'bg-slate-100')}" style="height: ${h}px"></div>
+                        <span class="text-[9px] ${isNow ? 'text-rose-600 font-semibold' : 'text-slate-400'} leading-none">${label}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
         // 2. 渲染信用卡列表
         function renderCardsList(ym) {
             const totalDebt = appData.cards.reduce((sum, c) => sum + (Number(c.currentDebt) || 0), 0);
@@ -1743,6 +2127,8 @@
 
         // 3. 渲染信用贷与分期列表（仿信用卡：每个账户独立卡面填色）
         function renderLoansList(ym) {
+            // 分期贷只展示等额本息 / 等额本金（先息后本已拆到独立页面）
+            const regularLoans = appData.loans.filter(l => !isInterestFirst(l));
             let totalRemaining = 0;
             let totalPrincipal = 0;
             let totalRemainingPrincipal = 0;
@@ -1751,7 +2137,7 @@
             let monthlyTotal = 0;    // 全部在还贷款的月供合计
             let activeCount = 0;
 
-            appData.loans.forEach(l => {
+            regularLoans.forEach(l => {
                 totalRemaining += getLoanRemainingDebt(l, ym);
                 totalPrincipal += getLoanPrincipal(l);
                 totalRemainingPrincipal += getLoanRemainingPrincipal(l, ym);
@@ -1770,7 +2156,7 @@
             document.getElementById('loans-total-debt').textContent = formatMoney(totalRemaining);
             document.getElementById('loans-total-principal-left').textContent = formatMoney(totalRemainingPrincipal);
             document.getElementById('loans-total-interest').textContent = formatMoney(totalInterest);
-            document.getElementById('loans-count').textContent = `共 ${appData.loans.length} 笔`;
+            document.getElementById('loans-count').textContent = `共 ${regularLoans.length} 笔`;
             const dueEl = document.getElementById('loans-month-due');
             if (dueEl) dueEl.textContent = formatMoney(monthDue);
             const monthlyEl = document.getElementById('loans-monthly-total');
@@ -1779,17 +2165,17 @@
             if (activeEl) activeEl.textContent = `${activeCount} 笔在还`;
 
             const container = document.getElementById('loans-list');
-            if (appData.loans.length === 0) {
+            if (regularLoans.length === 0) {
                 container.innerHTML = `
                     <div class="bg-white rounded-2xl p-8 text-center card-shadow border border-slate-100">
-                        <p class="text-sm font-semibold text-slate-700">暂无信用贷或固定分期</p>
-                        <p class="text-xs text-slate-400 mt-1">支持闪电贷、快贷、借呗、车贷等固定期数贷款追踪</p>
+                        <p class="text-sm font-semibold text-slate-700">暂无分期贷款</p>
+                        <p class="text-xs text-slate-400 mt-1">支持等额本息 / 等额本金的闪电贷、快贷、借呗、车贷等</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = appData.loans.map(l => {
+            container.innerHTML = regularLoans.map(l => {
                 const total = Number(l.totalPeriods) || 0;
                 const paid = getLoanPaidPeriods(l, ym);
                 const remPeriods = Math.max(0, total - paid);
@@ -1884,6 +2270,127 @@
                                     <i class="fa-solid fa-check"></i> ${isFinished ? '已结清' : (isPaidThisMonth ? '再还一期' : '核销本期')}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 3.5 渲染先息后本列表（到期倒计时胶囊 + 月付/到期本金拆分）
+        function renderInterestList(ym) {
+            const interestLoans = appData.loans.filter(l => isInterestFirst(l));
+            let monthlyTotal = 0;      // 每月付息合计
+            let principalLeft = 0;     // 待还本金合计
+            let principal90d = 0;      // 未来90天到期本金
+            let activeCount = 0;
+
+            interestLoans.forEach(l => {
+                const rem = Math.max(0, (Number(l.totalPeriods) || 0) - getLoanPaidPeriods(l, ym));
+                if (rem <= 0) return;
+                activeCount++;
+                monthlyTotal += Number(l.monthlyAmount) || 0;
+                const p = getLoanPrincipal(l);
+                principalLeft += p;
+                const md = getLoanMaturityDate(l);
+                const d = md ? daysUntilDate(md) : null;
+                if (d != null && d >= 0 && d <= 90) principal90d += p;
+            });
+
+            const mt = document.getElementById('interest-monthly-total');
+            if (mt) mt.textContent = formatMoney(monthlyTotal);
+            const p90 = document.getElementById('interest-principal-90d');
+            if (p90) p90.textContent = formatMoney(principal90d);
+            const pl = document.getElementById('interest-principal-left');
+            if (pl) pl.textContent = formatMoney(principalLeft);
+            const cnt = document.getElementById('interest-count');
+            if (cnt) cnt.textContent = `共 ${interestLoans.length} 笔`;
+
+            const container = document.getElementById('interest-list');
+            if (interestLoans.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl p-8 text-center card-shadow border border-slate-100">
+                        <p class="text-sm font-semibold text-slate-700">暂无先息后本贷款</p>
+                        <p class="text-xs text-slate-400 mt-1">按月付息、到期一次性还本的贷款，会在这里单独管理并做到期预警</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = interestLoans.map(l => {
+                const total = Number(l.totalPeriods) || 0;
+                const paid = getLoanPaidPeriods(l, ym);
+                const remPeriods = Math.max(0, total - paid);
+                const isFinished = remPeriods <= 0;
+                const isPaidThisMonth = l.lastPaidMonth === ym;
+                const icon = getLoanIcon(l);
+                const color = l.color || LOAN_DEFAULT_COLOR;
+                const monthly = Number(l.monthlyAmount) || 0;
+                const principal = getLoanPrincipal(l);
+                const maturityDate = getLoanMaturityDate(l);
+                const days = maturityDate ? daysUntilDate(maturityDate) : null;
+                const lastInterest = getLoanLastInterest(l);
+                const nextIsLast = !isFinished && (paid + 1 === total);
+                const plan = l.maturityPlan === 'rollover' ? '预计续贷 / 转贷' : '自有资金结清';
+
+                let countdownHtml;
+                if (isFinished) {
+                    countdownHtml = `<span class="text-[11px] bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 px-2.5 py-1 rounded-full font-semibold">已全部结清</span>`;
+                } else if (days == null) {
+                    countdownHtml = `<span class="text-[11px] bg-white/15 text-white px-2.5 py-1 rounded-full font-medium">未设置到期日</span>`;
+                } else if (days < 0) {
+                    countdownHtml = `<span class="text-[11px] bg-rose-600 text-white px-2.5 py-1 rounded-full font-semibold">本金已逾期 ${-days} 天</span>`;
+                } else if (days === 0) {
+                    countdownHtml = `<span class="text-[11px] bg-rose-500 text-white px-2.5 py-1 rounded-full font-semibold animate-pulse">本金今天到期</span>`;
+                } else if (days <= 30) {
+                    countdownHtml = `<span class="text-[11px] bg-amber-500 text-white px-2.5 py-1 rounded-full font-semibold">距本金到期还有 ${days} 天</span>`;
+                } else {
+                    countdownHtml = `<span class="text-[11px] bg-white/15 text-white px-2.5 py-1 rounded-full font-medium">距本金到期还有 ${days} 天</span>`;
+                }
+
+                return `
+                    <div class="rounded-3xl overflow-hidden card-shadow bg-white border border-slate-100">
+                        <div class="p-4 text-white relative" style="${gradientStyle(color, LOAN_DEFAULT_COLOR)}">
+                            <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none"></div>
+                            <div class="relative flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    ${iconDisplayHtml(l, icon, 'w-8 h-8', icon.text ? 'text-[10px]' : 'text-sm')}
+                                    <h4 class="text-sm font-bold truncate">${l.name}</h4>
+                                    <span class="text-[10px] bg-white/15 text-white px-2 py-0.5 rounded-md font-medium shrink-0">先息后本</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    ${countdownHtml}
+                                    <button onclick="openLoanModal('${l.id}')" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs transition" title="编辑贷款">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="relative mt-4 flex items-end justify-between">
+                                <div>
+                                    <div class="text-[11px] text-white/70">到期本金</div>
+                                    <div class="text-2xl font-bold tabular-nums mt-0.5">${formatMoney(principal)}</div>
+                                    <div class="text-[11px] text-white/60 mt-1">${maturityDate ? formatDateCN(maturityDate) + ' 到期' : '到期日未设置'}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[11px] text-white/70">常规月付（纯息）</div>
+                                    <div class="text-lg font-bold tabular-nums mt-0.5">${formatMoney(monthly)}<span class="text-[11px] font-normal text-white/60"> /月</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3.5 bg-white space-y-3">
+                            ${!isFinished ? `
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-500">到期计划</span>
+                                    <span class="${l.maturityPlan === 'rollover' ? 'text-amber-600' : 'text-emerald-600'} font-semibold">${plan}</span>
+                                </div>
+                                ${nextIsLast ? `<p class="text-[11px] text-rose-600">本期为最后一期：需归还本金 ${formatMoney(principal)} + 末期息 ${formatMoney(lastInterest)}</p>` : ''}
+                                <div class="pt-1 grid grid-cols-3 gap-1.5">
+                                    <button onclick="openLoanSchedule('${l.id}')" class="text-xs text-indigo-600 font-medium py-2 px-1 rounded-lg bg-indigo-50/60 hover:bg-indigo-50 transition">还款计划</button>
+                                    <button onclick="settleLoanEarly('${l.id}')" class="text-xs text-slate-500 hover:text-slate-800 font-medium py-2 px-1">提前结清</button>
+                                    <button onclick="repayLoanPeriod('${l.id}')" class="px-2 py-2 rounded-xl ${isPaidThisMonth ? 'bg-slate-100 text-slate-700' : 'bg-slate-900 text-white'} text-xs font-semibold active:scale-95 transition flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-check"></i> ${isPaidThisMonth ? '再还一期' : (nextIsLast ? '还本结清' : '核销付息')}
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -2142,7 +2649,7 @@
         }
 
         // ==================== 信用贷业务逻辑 ====================
-        function openLoanModal(loanId = null) {
+        function openLoanModal(loanId = null, defaultType = null) {
             const form = document.getElementById('form-loan');
             form.reset();
             document.getElementById('loan-id').value = '';
@@ -2152,13 +2659,14 @@
             switchLoanRepayType('equal');
             document.getElementById('loan-calc-hint').classList.add('hidden');
             document.getElementById('loan-auto-hint').classList.add('hidden');
+            setMaturityPlan('payoff');
             const delBtn = document.getElementById('btn-delete-loan');
             const ym = getCurrentYearMonth();
 
             if (loanId) {
                 const loan = appData.loans.find(l => l.id === loanId);
                 if (!loan) return;
-                document.getElementById('modal-loan-title').textContent = '编辑信用贷 / 分期';
+                document.getElementById('modal-loan-title').textContent = '编辑贷款';
                 document.getElementById('loan-id').value = loan.id;
                 document.getElementById('loan-name').value = loan.name;
                 document.getElementById('loan-total-periods').value = loan.totalPeriods;
@@ -2170,8 +2678,20 @@
                 document.getElementById('loan-start-month').value = loan.startMonth || '';
                 document.getElementById('loan-auto-advance').checked = !!loan.autoAdvance;
                 document.getElementById('loan-paid-this-month').checked = (loan.lastPaidMonth === ym);
+                // 先息后本新字段（起息日 / 到期还本日 / 末期利息 / 到期处置）
+                const sdVal = loan.startDate || (loan.startMonth ? loan.startMonth + '-01' : '');
+                document.getElementById('loan-start-date').value = sdVal;
+                let mdVal = loan.maturityDate || '';
+                if (!mdVal && sdVal) mdVal = addMonthsStr(sdVal, (Number(loan.totalPeriods) || 0) - 1);
+                document.getElementById('loan-maturity-date').value = mdVal;
+                document.getElementById('loan-last-interest').value = (loan.lastInterest != null && Number(loan.lastInterest) > 0) ? loan.lastInterest : '';
+                setMaturityPlan(loan.maturityPlan || 'payoff');
                 switchLoanRepayType(loan.repayType || 'equal');
                 toggleLoanAutoAdvance();
+                if (isInterestFirst(loan)) {
+                    refreshMaturityHint();
+                    updateInterestSummary();
+                }
                 const loanColorRadios = document.getElementsByName('loanColor');
                 loanColorRadios.forEach(r => { r.checked = (r.value === normalizeColorKey(loan.color, LOAN_DEFAULT_COLOR)); });
                 const loanIconRadios = document.getElementsByName('loanIcon');
@@ -2186,8 +2706,9 @@
                 }
                 delBtn.classList.remove('hidden');
             } else {
-                document.getElementById('modal-loan-title').textContent = '添加信用贷 / 分期';
+                document.getElementById('modal-loan-title').textContent = (defaultType === 'interestFirst') ? '添加先息后本' : '添加分期贷款';
                 delBtn.classList.add('hidden');
+                if (defaultType) switchLoanRepayType(defaultType);
             }
             openModal('modal-loan');
         }
@@ -2211,6 +2732,16 @@
             const icon = document.querySelector('input[name="loanIcon"]:checked')?.value || 'wallet';
             const customIcon = document.getElementById('loan-custom-icon').value || null;
             const repayType = currentLoanRepayType || 'equal';
+
+            // 先息后本：起息日 / 到期还本日 / 末期利息 / 到期处置
+            const startDate = (document.getElementById('loan-start-date').value || '').trim();
+            let maturityDate = (document.getElementById('loan-maturity-date').value || '').trim();
+            if (repayType === 'interestFirst' && !maturityDate && startDate && totalPeriods > 0) {
+                maturityDate = addMonthsStr(startDate, totalPeriods - 1);
+            }
+            const lastInterestRaw = document.getElementById('loan-last-interest').value.trim();
+            const lastInterest = (lastInterestRaw !== '' && !isNaN(parseFloat(lastInterestRaw)) && parseFloat(lastInterestRaw) >= 0) ? parseFloat(lastInterestRaw) : null;
+            const maturityPlan = currentMaturityPlan || 'payoff';
 
             // 月供/月息：优先按本金+年利率自动算；未算则用用户填写值
             let monthlyAmount = parseFloat(document.getElementById('loan-monthly-amount').value);
@@ -2251,7 +2782,7 @@
                     appData.loans[idx] = {
                         ...appData.loans[idx],
                         name, totalPeriods, paidPeriods, monthlyAmount, principal, dueDay, lastPaidMonth, color, icon, customIcon, repayType,
-                        annualRate, startMonth, autoAdvance
+                        annualRate, startMonth, autoAdvance, startDate, maturityDate, lastInterest, maturityPlan
                     };
                 }
                 showToast('贷款计划已更新');
@@ -2271,7 +2802,11 @@
                     repayType,
                     annualRate,
                     startMonth,
-                    autoAdvance
+                    autoAdvance,
+                    startDate,
+                    maturityDate,
+                    lastInterest,
+                    maturityPlan
                 });
                 showToast('信用贷已添加');
             }
@@ -2480,11 +3015,12 @@
 
                 lines.push('');
                 lines.push('【信用贷 / 分期】');
-                lines.push(['名称', '还款方式', '年利率(%)', '总贷款金额', '剩余本金', '总期数', '已还期数', '剩余期数', '首期月供', '本期应还', '扣款日', '剩余待还', '总利息'].map(csvCell).join(','));
+                lines.push(['名称', '还款方式', '年利率(%)', '总贷款金额', '剩余本金', '总期数', '已还期数', '剩余期数', '首期月供', '本期应还', '扣款日', '剩余待还', '总利息', '起息日', '到期还本日', '到期处置'].map(csvCell).join(','));
                 appData.loans.forEach(l => {
                     const paid = getLoanPaidPeriods(l);
                     const rem = Math.max(0, (Number(l.totalPeriods) || 0) - paid);
                     const rate = (l.annualRate != null && Number(l.annualRate) > 0) ? Number(l.annualRate) : '';
+                    const plan = l.maturityPlan === 'rollover' ? '预计续贷' : '自有资金结清';
                     lines.push([
                         l.name,
                         getLoanRepayTypeName(l),
@@ -2498,7 +3034,10 @@
                         getLoanNextPayment(l),
                         l.dueDay,
                         getLoanRemainingDebt(l),
-                        getLoanTotalInterest(l)
+                        getLoanTotalInterest(l),
+                        l.startDate || '',
+                        getLoanMaturityDate(l),
+                        isInterestFirst(l) ? plan : ''
                     ].map(csvCell).join(','));
                 });
 
@@ -2573,13 +3112,22 @@
                     lines.push(`• 每月 ${c.dueDay} 日：${c.bank}${c.tail ? '(' + c.tail + ')' : ''} - 当前待还 ${formatMoney(c.currentDebt)}`);
                 });
             }
-            if (appData.loans.length > 0) {
-                lines.push('\n🏦 信用贷/分期扣款日：');
-                appData.loans.forEach(l => {
+            const regular = appData.loans.filter(l => !isInterestFirst(l));
+            const interest = appData.loans.filter(l => isInterestFirst(l));
+            if (regular.length > 0) {
+                lines.push('\n🏦 分期贷月供：');
+                regular.forEach(l => {
+                    const rem = (Number(l.totalPeriods) || 0) - getLoanPaidPeriods(l);
+                    if (rem > 0) lines.push(`• 每月 ${l.dueDay} 日：${l.name} - 月供 ${formatMoney(getLoanNextPayment(l))} (剩${rem}期)`);
+                });
+            }
+            if (interest.length > 0) {
+                lines.push('\n⏳ 先息后本（每月付息 + 到期还本）：');
+                interest.forEach(l => {
                     const rem = (Number(l.totalPeriods) || 0) - getLoanPaidPeriods(l);
                     if (rem > 0) {
-                        const lb = isInterestFirst(l) ? '月息' : '月供';
-                        lines.push(`• 每月 ${l.dueDay} 日：${l.name} - ${lb} ${formatMoney(getLoanNextPayment(l))} (剩${rem}期)`);
+                        const md = getLoanMaturityDate(l);
+                        lines.push(`• 每月 ${l.dueDay} 日：${l.name} - 付息 ${formatMoney(l.monthlyAmount)}；本金 ${formatMoney(getLoanPrincipal(l))}${md ? ' ' + formatDateCN(md) + ' 到期' : '（到期日未设置）'}`);
                     }
                 });
             }

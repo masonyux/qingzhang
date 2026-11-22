@@ -1,5 +1,5 @@
-/* 轻账 PWA Service Worker —— 网络优先 + 缓存兜底 */
-const CACHE_NAME = 'qingzhang-v1.6.1';
+﻿/* 轻账 PWA Service Worker —— 网络优先 + 缓存兜底 */
+const CACHE_NAME = 'qingzhang-v1.8.0';
 
 const ASSETS = [
   './index.html',
