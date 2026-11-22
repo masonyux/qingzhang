@@ -41,6 +41,9 @@
         }
         .color-name { font-size: 9px; line-height: 1; color: #64748b; white-space: nowrap; }
         .color-item input:checked ~ .color-name { color: #0f172a; font-weight: 700; }
+        /* 底部 Tab：横向排列（图标在左、文字在右），窄屏不换行 */
+        .tab-btn { gap: 2px; white-space: nowrap; min-width: 0; }
+        .tab-btn span { white-space: nowrap; }
     </style>
 </head>
 <body class="antialiased selection:bg-slate-800 selection:text-white">
@@ -375,26 +378,26 @@
 
         <!-- ==================== 底部原生 Tab 导航栏 ==================== -->
         <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-slate-200/80 safe-bottom z-30 px-2 pt-2">
-            <div class="grid grid-cols-5 gap-1">
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-900 font-semibold transition">
-                    <i class="fa-solid fa-chart-pie text-lg mb-1"></i>
-                    <span class="text-[11px]">总览</span>
+            <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex items-center justify-center py-2 rounded-xl text-slate-900 font-semibold transition">
+                    <i class="fa-solid fa-chart-pie text-sm shrink-0"></i>
+                    <span class="text-[10px]">总览</span>
                 </button>
-                <button onclick="switchTab('cards')" id="tab-cards" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
-                    <i class="fa-regular fa-credit-card text-lg mb-1"></i>
-                    <span class="text-[11px]">信用卡</span>
+                <button onclick="switchTab('cards')" id="tab-cards" class="tab-btn flex items-center justify-center py-2 rounded-xl text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-regular fa-credit-card text-sm shrink-0"></i>
+                    <span class="text-[10px]">信用卡</span>
                 </button>
-                <button onclick="switchTab('loans')" id="tab-loans" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
-                    <i class="fa-solid fa-layer-group text-lg mb-1"></i>
-                    <span class="text-[11px]">分期贷</span>
+                <button onclick="switchTab('loans')" id="tab-loans" class="tab-btn flex items-center justify-center py-2 rounded-xl text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-layer-group text-sm shrink-0"></i>
+                    <span class="text-[10px]">分期贷</span>
                 </button>
-                <button onclick="switchTab('interest')" id="tab-interest" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
-                    <i class="fa-solid fa-clock text-lg mb-1"></i>
-                    <span class="text-[11px]">先息后本</span>
+                <button onclick="switchTab('interest')" id="tab-interest" class="tab-btn flex items-center justify-center py-2 rounded-xl text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-clock text-sm shrink-0"></i>
+                    <span class="text-[10px]">先息后本</span>
                 </button>
-                <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 hover:text-slate-600 transition">
-                    <i class="fa-solid fa-clock-rotate-left text-lg mb-1"></i>
-                    <span class="text-[11px]">流水</span>
+                <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex items-center justify-center py-2 rounded-xl text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-clock-rotate-left text-sm shrink-0"></i>
+                    <span class="text-[10px]">流水</span>
                 </button>
             </div>
         </nav>
