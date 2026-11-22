@@ -25,6 +25,23 @@
         // 提前应用深色模式，避免加载时闪白
         try { if (localStorage.getItem('qingzhang_dark') === '1') document.documentElement.classList.add('dark'); } catch (e) { }
     </script>
+    <style>
+        /* 卡面主题色：24 色银行同款调色板（不依赖 Tailwind 编译，离线可用） */
+        .color-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px 4px; }
+        .color-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .color-item input { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+        .color-swatch {
+            width: 30px; height: 30px; border-radius: 9px; display: block;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25), 0 1px 3px rgba(15, 23, 42, .18);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .color-item input:checked + .color-swatch {
+            transform: scale(1.06);
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a, inset 0 0 0 1px rgba(255, 255, 255, .25);
+        }
+        .color-name { font-size: 9px; line-height: 1; color: #64748b; white-space: nowrap; }
+        .color-item input:checked ~ .color-name { color: #0f172a; font-weight: 700; }
+    </style>
 </head>
 <body class="antialiased selection:bg-slate-800 selection:text-white">
 
@@ -202,6 +219,18 @@
                         <p id="loans-total-debt" class="text-xl font-bold text-indigo-600 tabular-nums mt-0.5">¥ 0.00</p>
                     </div>
                 </div>
+                <div class="mt-3 grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                    <div>
+                        <p class="text-[11px] text-slate-400">本月还款合计（本期未还）</p>
+                        <p id="loans-month-due" class="text-xl font-bold text-emerald-600 tabular-nums mt-0.5">¥ 0.00</p>
+                        <p id="loans-active-count" class="text-[11px] text-slate-400 mt-0.5">0 笔在还</p>
+                    </div>
+                    <div class="border-l border-slate-100 pl-3">
+                        <p class="text-[11px] text-slate-400">每月月供合计（全部在还）</p>
+                        <p id="loans-monthly-total" class="text-xl font-bold text-slate-900 tabular-nums mt-0.5">¥ 0.00</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">含等额本金逐月递减</p>
+                    </div>
+                </div>
                 <div class="mt-2.5 pt-2.5 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-400">
                     <div class="flex items-center justify-between">
                         <span>剩余本金合计 <span id="loans-total-principal-left" class="font-semibold text-slate-700 tabular-nums">¥ 0.00</span></span>
@@ -313,7 +342,7 @@
                 <div class="grid grid-cols-3 gap-3">
                     <div class="col-span-2">
                         <label class="block text-xs font-medium text-slate-600 mb-1">银行/卡片名称 *</label>
-                        <input type="text" id="card-bank" required placeholder="如：招商银行信用卡" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800">
+                        <input type="text" id="card-bank" required placeholder="如：招商银行信用卡" oninput="autoPickBankIcon('card')" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-600 mb-1">卡号后四位</label>
@@ -349,14 +378,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">卡片主题色</label>
-                    <div class="flex gap-2.5 pt-1" id="card-color-picker">
-                        <label class="cursor-pointer"><input type="radio" name="cardColor" value="from-slate-800 to-slate-900" checked class="sr-only peer"><span class="w-7 h-7 rounded-full bg-slate-800 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-slate-800"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cardColor" value="from-blue-700 to-indigo-900" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-blue-700 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-blue-700"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cardColor" value="from-rose-700 to-red-900" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-rose-700 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-rose-700"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cardColor" value="from-emerald-700 to-teal-900" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-emerald-700 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-emerald-700"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cardColor" value="from-amber-600 to-orange-800" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-amber-600 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-amber-600"></span></label>
-                    </div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">卡片主题色（24 色 · 银行同款）</label>
+                    <div class="pt-1" id="card-color-picker"></div>
                 </div>
 
                 <div>
@@ -464,7 +487,7 @@
                 <input type="hidden" id="loan-id">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">贷款/分期名称 *</label>
-                    <input type="text" id="loan-name" required placeholder="如：招商闪电贷 / 建行快贷 / 车贷" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800">
+                    <input type="text" id="loan-name" required placeholder="如：招商闪电贷 / 建行快贷 / 车贷" oninput="autoPickBankIcon('loan')" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -538,14 +561,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">卡面主题色</label>
-                    <div class="flex gap-2.5 pt-1" id="loan-color-picker">
-                        <label class="cursor-pointer"><input type="radio" name="loanColor" value="from-blue-700 to-indigo-900" checked class="sr-only peer"><span class="w-7 h-7 rounded-full bg-blue-700 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-blue-700"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="loanColor" value="from-slate-800 to-slate-900" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-slate-800 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-slate-800"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="loanColor" value="from-rose-700 to-red-900" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-rose-700 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-rose-700"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="loanColor" value="from-emerald-700 to-teal-900" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-emerald-700 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-emerald-700"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="loanColor" value="from-amber-600 to-orange-800" class="sr-only peer"><span class="w-7 h-7 rounded-full bg-amber-600 block peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-amber-600"></span></label>
-                    </div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">卡面主题色（24 色 · 银行同款）</label>
+                    <div class="pt-1" id="loan-color-picker"></div>
                 </div>
 
                 <div>
@@ -681,15 +698,136 @@
             { key: 'pingan', text: '平安', bg: 'bg-orange-600' }
         ];
 
-        // 信用贷默认卡面主题色（与信用卡一样支持每个账户独立配色）
-        const LOAN_DEFAULT_COLOR = 'from-blue-700 to-indigo-900';
+        // 银行官方图标（招商/工商/建设/徽商为官网原图；其余 5 家为手绘高清 SVG 标识）
+        const BANK_LOGO_ICONS = [
+            { key: 'logo_cmb',       name: '招商银行', short: '招商', img: 'icons/banks/cmb.png' },
+            { key: 'logo_icbc',      name: '工商银行', short: '工商', img: 'icons/banks/icbc.png' },
+            { key: 'logo_ccb',       name: '建设银行', short: '建设', img: 'icons/banks/ccb.png' },
+            { key: 'logo_abc',       name: '农业银行', short: '农业', img: 'icons/banks/abc.svg' },
+            { key: 'logo_boc',       name: '中国银行', short: '中国', img: 'icons/banks/boc.svg' },
+            { key: 'logo_bocom',     name: '交通银行', short: '交通', img: 'icons/banks/bocom.svg' },
+            { key: 'logo_ceb',       name: '光大银行', short: '光大', img: 'icons/banks/ceb.svg' },
+            { key: 'logo_huishang',  name: '徽商银行', short: '徽商', img: 'icons/banks/huishang.png' },
+            { key: 'logo_guangzhou', name: '广州银行', short: '广州', img: 'icons/banks/guangzhou.svg' }
+        ];
 
-        // 取图标配置（卡片 / 贷款各用各的调色板）
+        // 按名称智能匹配银行官方图标（新建卡片时自动选中）
+        function matchBankLogoKey(text) {
+            if (!text) return null;
+            const t = String(text);
+            const rules = [
+                ['招商', 'logo_cmb'],
+                ['工商', 'logo_icbc'], ['工行', 'logo_icbc'],
+                ['建设', 'logo_ccb'], ['建行', 'logo_ccb'],
+                ['农业', 'logo_abc'], ['农行', 'logo_abc'],
+                ['交通', 'logo_bocom'], ['交行', 'logo_bocom'],
+                ['光大', 'logo_ceb'],
+                ['徽商', 'logo_huishang'],
+                ['广州', 'logo_guangzhou'],
+                ['中国银行', 'logo_boc'], ['中行', 'logo_boc']
+            ];
+            for (const [kw, key] of rules) { if (t.includes(kw)) return key; }
+            return null;
+        }
+
+        // 输入行名时自动选中对应银行官方图标（不覆盖用户已手动选择的图标/相册图片）
+        function autoPickBankIcon(kind) {
+            const nameEl = kind === 'loan' ? document.getElementById('loan-name') : document.getElementById('card-bank');
+            if (!nameEl) return;
+            const key = matchBankLogoKey(nameEl.value);
+            if (!key) return;
+            const customEl = document.getElementById(kind + '-custom-icon');
+            if (customEl && customEl.value) return;
+            const radioName = kind === 'loan' ? 'loanIcon' : 'cardIcon';
+            const current = document.querySelector(`input[name="${radioName}"]:checked`);
+            const defaults = kind === 'loan' ? ['wallet'] : ['credit'];
+            if (current && !(defaults.includes(current.value) || current.value.indexOf('logo_') === 0)) return;
+            const target = document.querySelector(`input[name="${radioName}"][value="${key}"]`);
+            if (target) target.checked = true;
+        }
+
+        // ==================== 卡面主题色：24 色银行同款调色板 ====================
+        // from / to 为品牌主色的渐变两端，卡面与色板均用同一套数据实时渲染
+        const CARD_COLORS = [
+            // —— 指定银行专用色 ——
+            { key: 'cmb',       name: '招商银行', short: '招商', from: '#C7000B', to: '#7E0006' },
+            { key: 'bocom',     name: '交通银行', short: '交通', from: '#0B4A8F', to: '#06294D' },
+            { key: 'ceb',       name: '光大银行', short: '光大', from: '#9E1B6B', to: '#5E0F3F' },
+            { key: 'abc',       name: '农业银行', short: '农业', from: '#00963F', to: '#005C27' },
+            { key: 'huishang',  name: '徽商银行', short: '徽商', from: '#C8102E', to: '#7E0A1D' },
+            { key: 'icbc',      name: '工商银行', short: '工商', from: '#B00000', to: '#6E0000' },
+            { key: 'ccb',       name: '建设银行', short: '建设', from: '#005BAC', to: '#003B71' },
+            { key: 'guangzhou', name: '广州银行', short: '广州', from: '#B31B1B', to: '#7A0F0F' },
+            { key: 'boc',       name: '中国银行', short: '中国', from: '#A6192E', to: '#6B0F1C' },
+            // —— 其他常见银行 ——
+            { key: 'citic',     name: '中信银行', short: '中信', from: '#C8102E', to: '#8A0B1F' },
+            { key: 'spdb',      name: '浦发银行', short: '浦发', from: '#0B5FA5', to: '#073B6F' },
+            { key: 'cib',       name: '兴业银行', short: '兴业', from: '#0A4F8A', to: '#06325C' },
+            { key: 'cmbc',      name: '民生银行', short: '民生', from: '#0F6CB4', to: '#0A4472' },
+            { key: 'pab',       name: '平安银行', short: '平安', from: '#F26F21', to: '#B64609' },
+            { key: 'hxb',       name: '华夏银行', short: '华夏', from: '#C8102E', to: '#6E0A19' },
+            { key: 'cgb',       name: '广发银行', short: '广发', from: '#C8102E', to: '#9C0F24' },
+            { key: 'psbc',      name: '邮政储蓄', short: '邮储', from: '#00753A', to: '#004D26' },
+            { key: 'bob',       name: '北京银行', short: '北京', from: '#C8102E', to: '#7E0A1D' },
+            // —— 经典 / 网贷平台色 ——
+            { key: 'huabei',    name: '花呗 / 支付宝', short: '花呗', from: '#1677FF', to: '#0952C4' },
+            { key: 'wechat',    name: '微信 / 微粒贷', short: '微信', from: '#07C160', to: '#048F47' },
+            { key: 'dark',      name: '深空黑', short: '黑金', from: '#334155', to: '#0F172A' },
+            { key: 'gold',      name: '香槟金', short: '香槟', from: '#B08D57', to: '#6E5330' },
+            { key: 'rose',      name: '玫瑰红', short: '玫红', from: '#E11D74', to: '#9C0F4E' },
+            { key: 'indigo',    name: '靛蓝经典', short: '靛蓝', from: '#4338CA', to: '#1E1B4B' }
+        ];
+
+        // 旧版本色卡（Tailwind 渐变类）→ 新色卡 key，保证老数据平滑迁移
+        const LEGACY_COLOR_MAP = {
+            'from-slate-800 to-slate-900': 'dark',
+            'from-blue-700 to-indigo-900': 'indigo',
+            'from-rose-700 to-red-900': 'rose',
+            'from-emerald-700 to-teal-900': 'abc',
+            'from-amber-600 to-orange-800': 'gold'
+        };
+
+        // 默认卡面主题色（信用卡偏深空黑，信用贷偏靛蓝，沿用旧版视觉）
+        const CARD_DEFAULT_COLOR = 'dark';
+        const LOAN_DEFAULT_COLOR = 'indigo';
+
+        function normalizeColorKey(val, fallback) {
+            if (val && CARD_COLORS.some(t => t.key === val)) return val;
+            if (val && LEGACY_COLOR_MAP[val]) return LEGACY_COLOR_MAP[val];
+            return fallback || CARD_DEFAULT_COLOR;
+        }
+
+        function colorOf(val, fallback) {
+            const k = normalizeColorKey(val, fallback);
+            return CARD_COLORS.find(t => t.key === k) || CARD_COLORS[0];
+        }
+
+        // 返回可直接写入 style 的渐变背景
+        function gradientStyle(val, fallback) {
+            const t = colorOf(val, fallback);
+            return `background-image:linear-gradient(135deg, ${t.from} 0%, ${t.to} 100%)`;
+        }
+
+        // 渲染 24 色色板（信用卡 / 信用贷弹窗共用）
+        function renderColorPicker(containerId, radioName, defaultKey) {
+            const box = document.getElementById(containerId);
+            if (!box) return;
+            box.innerHTML = `<div class="color-grid">` + CARD_COLORS.map(t => `
+                <label class="color-item" title="${t.name}">
+                    <input type="radio" name="${radioName}" value="${t.key}" ${t.key === defaultKey ? 'checked' : ''}>
+                    <span class="color-swatch" style="background-image:linear-gradient(135deg, ${t.from} 0%, ${t.to} 100%);"></span>
+                    <span class="color-name">${t.short}</span>
+                </label>`).join('') + `</div>`;
+        }
+
+        // 取图标配置（卡片 / 贷款各用各的调色板，并优先匹配银行官方图标）
         function getCardIcon(card) {
-            return CARD_ICONS.find(ic => ic.key === (card && card.icon)) || CARD_ICONS[0];
+            const k = card && card.icon;
+            return BANK_LOGO_ICONS.find(ic => ic.key === k) || CARD_ICONS.find(ic => ic.key === k) || CARD_ICONS[0];
         }
         function getLoanIcon(loan) {
-            return LOAN_ICONS.find(ic => ic.key === (loan && loan.icon)) || LOAN_ICONS[0];
+            const k = loan && loan.icon;
+            return BANK_LOGO_ICONS.find(ic => ic.key === k) || LOAN_ICONS.find(ic => ic.key === k) || LOAN_ICONS[0];
         }
 
         // 生成展示用彩色图标徽章（支持 FontAwesome 图标与文字品牌徽章）
@@ -700,10 +838,13 @@
             return `<span class="${sizeCls} ${fontCls} ${icon.bg} text-white flex items-center justify-center shrink-0 rounded-xl overflow-hidden">${inner}</span>`;
         }
 
-        // 展示图标：优先用自定义相册图片，否则用内置徽章
+        // 展示图标：优先用自定义相册图片；其次银行官方图标；否则用内置彩色徽章
         function iconDisplayHtml(obj, icon, sizeCls, fontCls) {
             if (obj && obj.customIcon) {
                 return `<img src="${obj.customIcon}" class="${sizeCls} rounded-xl object-cover shrink-0" alt="">`;
+            }
+            if (icon && icon.img) {
+                return `<img src="${icon.img}" class="${sizeCls} rounded-xl bg-white shrink-0" alt="${icon.name || ''}">`;
             }
             return iconBadgeHtml(icon, sizeCls, fontCls);
         }
@@ -758,11 +899,21 @@
             document.getElementById(kind + '-custom-icon-clear').classList.add('hidden');
         }
 
-        // 渲染弹窗内的彩色图标选择器
+        // 渲染弹窗内的图标选择器（顶部为银行官方图标，下方为通用/品牌图标）
         function renderIconPicker(containerId, icons, radioName) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            container.innerHTML = icons.map((ic, idx) => `
+            const head = (t) => `<div class="w-full text-[11px] text-slate-400 font-medium mt-1 mb-0.5">${t}</div>`;
+            const bankHtml = BANK_LOGO_ICONS.map(ic => `
+                <label class="flex flex-col items-center gap-1 cursor-pointer" title="${ic.name}">
+                    <input type="radio" name="${radioName}" value="${ic.key}" class="sr-only peer">
+                    <span class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-slate-800 transition">
+                        <img src="${ic.img}" alt="${ic.name}" class="w-8 h-8">
+                    </span>
+                    <span class="text-[10px] text-slate-500 leading-none">${ic.short}</span>
+                </label>
+            `).join('');
+            const genHtml = icons.map((ic, idx) => `
                 <label class="cursor-pointer">
                     <input type="radio" name="${radioName}" value="${ic.key}" ${idx === 0 ? 'checked' : ''} class="sr-only peer">
                     <span class="w-10 h-10 rounded-xl ${ic.bg} text-white flex items-center justify-center overflow-hidden peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-slate-800 transition ${ic.text ? 'text-[10px] font-bold leading-none' : 'text-sm'}">
@@ -770,6 +921,7 @@
                     </span>
                 </label>
             `).join('');
+            container.innerHTML = head('银行官方图标') + bankHtml + head('通用 / 品牌图标') + genHtml;
         }
 
         // 默认示例数据（初次打开时提供直观体验）
@@ -784,8 +936,8 @@
                     limit: 50000,
                     currentDebt: 3420.50,
                     balance: 41000.00,
-                    color: 'from-rose-700 to-red-900',
-                    icon: 'bank',
+                    color: 'cmb',
+                    icon: 'logo_cmb',
                     lastPaidMonth: ''
                 },
                 {
@@ -797,8 +949,8 @@
                     limit: 30000,
                     currentDebt: 1280.00,
                     balance: 25000.00,
-                    color: 'from-slate-800 to-slate-900',
-                    icon: 'credit',
+                    color: 'citic',
+                    icon: 'citic',
                     lastPaidMonth: ''
                 }
             ],
@@ -811,8 +963,8 @@
                     monthlyAmount: 2150.00,
                     principal: 48000.00,
                     dueDay: 16,
-                    color: 'from-blue-700 to-indigo-900',
-                    icon: 'bank',
+                    color: 'cmb',
+                    icon: 'logo_cmb',
                     lastPaidMonth: '',
                     repayType: 'equal',
                     annualRate: null,
@@ -827,8 +979,8 @@
                     monthlyAmount: 1680.00,
                     principal: 19000.00,
                     dueDay: 20,
-                    color: 'from-emerald-700 to-teal-900',
-                    icon: 'coins',
+                    color: 'ccb',
+                    icon: 'logo_ccb',
                     lastPaidMonth: getCurrentYearMonth(), // 示例：本月已还
                     repayType: 'equal',
                     annualRate: null,
@@ -866,9 +1018,10 @@
                     appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
                     saveData();
                 }
-                // 兼容旧数据：补齐信用贷字段（卡面色、还款方式、利率、首次扣款月、自动推进）
+                // 兼容旧数据：卡面主题色迁移到 24 色 key；补齐信用贷字段
+                appData.cards.forEach(c => { c.color = normalizeColorKey(c.color, CARD_DEFAULT_COLOR); });
                 appData.loans.forEach(l => {
-                    if (!l.color) l.color = LOAN_DEFAULT_COLOR;
+                    l.color = normalizeColorKey(l.color, LOAN_DEFAULT_COLOR);
                     if (!l.repayType) l.repayType = 'equal';
                     if (l.annualRate == null) l.annualRate = null;
                     if (!l.startMonth) l.startMonth = '';
@@ -1539,7 +1692,7 @@
                 return `
                     <div class="rounded-3xl overflow-hidden card-shadow bg-white border border-slate-100">
                         <!-- 仿实体卡面头部 -->
-                        <div class="bg-gradient-to-r ${c.color || 'from-slate-800 to-slate-900'} p-4 text-white relative">
+                        <div class="p-4 text-white relative" style="${gradientStyle(c.color)}">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     ${iconDisplayHtml(c, icon, 'w-7 h-7', icon.text ? 'text-[10px]' : 'text-xs')}
@@ -1594,12 +1747,23 @@
             let totalPrincipal = 0;
             let totalRemainingPrincipal = 0;
             let totalInterest = 0;
+            let monthDue = 0;        // 本月（本期）尚未还的合计
+            let monthlyTotal = 0;    // 全部在还贷款的月供合计
+            let activeCount = 0;
 
             appData.loans.forEach(l => {
                 totalRemaining += getLoanRemainingDebt(l, ym);
                 totalPrincipal += getLoanPrincipal(l);
                 totalRemainingPrincipal += getLoanRemainingPrincipal(l, ym);
                 totalInterest += getLoanTotalInterest(l);
+
+                const rem = Math.max(0, (Number(l.totalPeriods) || 0) - getLoanPaidPeriods(l, ym));
+                if (rem > 0) {
+                    const pay = getLoanNextPayment(l, ym);
+                    monthlyTotal += pay;
+                    if (l.lastPaidMonth !== ym) monthDue += pay;
+                    activeCount++;
+                }
             });
 
             document.getElementById('loans-total-principal').textContent = formatMoney(totalPrincipal);
@@ -1607,6 +1771,12 @@
             document.getElementById('loans-total-principal-left').textContent = formatMoney(totalRemainingPrincipal);
             document.getElementById('loans-total-interest').textContent = formatMoney(totalInterest);
             document.getElementById('loans-count').textContent = `共 ${appData.loans.length} 笔`;
+            const dueEl = document.getElementById('loans-month-due');
+            if (dueEl) dueEl.textContent = formatMoney(monthDue);
+            const monthlyEl = document.getElementById('loans-monthly-total');
+            if (monthlyEl) monthlyEl.textContent = formatMoney(monthlyTotal);
+            const activeEl = document.getElementById('loans-active-count');
+            if (activeEl) activeEl.textContent = `${activeCount} 笔在还`;
 
             const container = document.getElementById('loans-list');
             if (appData.loans.length === 0) {
@@ -1653,7 +1823,7 @@
                 return `
                     <div class="rounded-3xl overflow-hidden card-shadow bg-white border border-slate-100">
                         <!-- 仿信用卡卡面：渐变填色 + 本金/剩余本金 -->
-                        <div class="bg-gradient-to-r ${color} p-4 text-white relative">
+                        <div class="p-4 text-white relative" style="${gradientStyle(color, LOAN_DEFAULT_COLOR)}">
                             <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none"></div>
                             <div class="relative flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2 min-w-0">
@@ -1791,7 +1961,7 @@
                 document.getElementById('card-balance').value = (card.balance != null && card.balance !== '') ? card.balance : '';
 
                 const radios = document.getElementsByName('cardColor');
-                radios.forEach(r => { r.checked = (r.value === card.color); });
+                radios.forEach(r => { r.checked = (r.value === normalizeColorKey(card.color, CARD_DEFAULT_COLOR)); });
                 const iconRadios = document.getElementsByName('cardIcon');
                 iconRadios.forEach(r => { r.checked = (r.value === (card.icon || 'credit')); });
                 const cIcon = card.customIcon || '';
@@ -1819,7 +1989,7 @@
             const dueDay = parseInt(document.getElementById('card-due-day').value, 10);
             const limit = parseFloat(document.getElementById('card-limit').value) || 0;
             const debt = parseFloat(document.getElementById('card-debt').value) || 0;
-            const color = document.querySelector('input[name="cardColor"]:checked')?.value || 'from-slate-800 to-slate-900';
+            const color = document.querySelector('input[name="cardColor"]:checked')?.value || CARD_DEFAULT_COLOR;
             const icon = document.querySelector('input[name="cardIcon"]:checked')?.value || 'credit';
             const balanceRaw = document.getElementById('card-balance').value.trim();
             const balance = (balanceRaw === '') ? null : (parseFloat(balanceRaw) || 0);
@@ -2003,7 +2173,7 @@
                 switchLoanRepayType(loan.repayType || 'equal');
                 toggleLoanAutoAdvance();
                 const loanColorRadios = document.getElementsByName('loanColor');
-                loanColorRadios.forEach(r => { r.checked = (r.value === (loan.color || LOAN_DEFAULT_COLOR)); });
+                loanColorRadios.forEach(r => { r.checked = (r.value === normalizeColorKey(loan.color, LOAN_DEFAULT_COLOR)); });
                 const loanIconRadios = document.getElementsByName('loanIcon');
                 loanIconRadios.forEach(r => { r.checked = (r.value === (loan.icon || 'wallet')); });
                 const lIcon = loan.customIcon || '';
@@ -2460,6 +2630,8 @@
             loadDarkMode();
             renderIconPicker('card-icon-picker', CARD_ICONS, 'cardIcon');
             renderIconPicker('loan-icon-picker', LOAN_ICONS, 'loanIcon');
+            renderColorPicker('card-color-picker', 'cardColor', CARD_DEFAULT_COLOR);
+            renderColorPicker('loan-color-picker', 'loanColor', LOAN_DEFAULT_COLOR);
             renderAll();
 
             // 注册 Service Worker（PWA 离线缓存，需 HTTPS 或 localhost）

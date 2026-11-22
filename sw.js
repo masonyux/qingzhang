@@ -1,5 +1,5 @@
 /* 轻账 PWA Service Worker —— 网络优先 + 缓存兜底 */
-const CACHE_NAME = 'qingzhang-v1.4.0';
+const CACHE_NAME = 'qingzhang-v1.6.1';
 
 const ASSETS = [
   './index.html',
@@ -12,7 +12,16 @@ const ASSETS = [
   './icons/apple-touch-icon.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './icons/icon-maskable-512.png',
+  './icons/banks/cmb.png',
+  './icons/banks/icbc.png',
+  './icons/banks/ccb.png',
+  './icons/banks/abc.svg',
+  './icons/banks/boc.svg',
+  './icons/banks/bocom.svg',
+  './icons/banks/ceb.svg',
+  './icons/banks/huishang.png',
+  './icons/banks/guangzhou.svg'
 ];
 
 self.addEventListener('install', (event) => {

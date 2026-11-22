@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bocBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C4101E"/>
+      <stop offset="1" stop-color="#8A0A14"/>
+    </linearGradient>
+    <mask id="bocMask">
+      <rect width="128" height="128" fill="#000000"/>
+      <rect x="57" y="22" width="14" height="84" fill="#FFFFFF"/>
+      <rect x="22" y="57" width="84" height="14" fill="#FFFFFF"/>
+      <rect x="51" y="51" width="26" height="26" fill="#000000"/>
+    </mask>
+  </defs>
+  <circle cx="64" cy="64" r="60" fill="url(#bocBg)"/>
+  <rect width="128" height="128" fill="#FFFFFF" mask="url(#bocMask)"/>
+  <rect x="51" y="51" width="26" height="26" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+</svg>
